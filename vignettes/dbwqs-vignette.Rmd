@@ -1,0 +1,110 @@
+---
+title: "DBWQS for Exposure Mixtures and Compositional Outcomes"
+output: rmarkdown::html_vignette
+author: "Hachem Saddiki"
+vignette: >
+  %\VignetteIndexEntry{dbwqs-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(xbwqs)
+set.seed(9987)
+```
+
+## Overview
+
+The `dbwqs()` function from the `xbwqs` package implements the Dirichlet BWQS model which can be used to evaluate the association between exposure mixtures and compositional outcomes (defined as proportions that sum up to 1). The DBWQS model jointly models the vector of outcome proportions taking into account their simplical constraints. A technical presentations of the model is available at [Saddiki et al., 2025]. 
+
+The goal in this vignette is to demonstrate the use of `dbwqs()` function to estimate the association between the BWQS mixture index and placenta cell type composition from a publicly available subset of the Rhode Island Child Health Study (RICHS),.
+
+## Data
+
+To demonstrate the use of the `dbwqs()` function, we leverage a publicly available data set retrieved from (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE75248). The data set is included with the `xbwqs` package and contains:
+- *Placenta cell type proportions*: these proportions were estimated from placental DNA methylation measurements using reference-based deconvolution methods.  Specificaly, six cell types were estimated: Syncytiorophoblasts, trophoblasts, stromal, nRBC, Hofbauer, and endothelial.
+- *Placenta chemicals*: chemical exposure concentrations measured in placenta tissue.
+- *Maternal covariates*: covariates including infant sex, maternal age, education, etc. (please consult the data source linked above for a complete description of the covariates).
+
+## Import and prepare data set for DBWQS
+
+Let's start by importing the data set and pre-processing the covariates to be used by `dbwqs()`. Note the following:
+- Categorical covariates must be cast `as.factor`, otherwise `dbwqs()` considers them as numeric.
+- Only complete cases should be given to the `dbwqs()` function, so incomplete entries should either be imputed or discarded.
+- If no reference is chosen for the compositional outcomes, the first proportion given is used as reference by default. 
+
+```{r }
+library(mice)
+# load RICHS example data
+data("GSE75248_wCellComp")
+
+# define covariates (maternal variables + infant sex)
+covars <- c('bmi', 'gest_diabetes', 'child_sex','mom_age','mom_educ','mom_race',
+  'prepreg_smoking')
+
+# define exposures to be included in the mixture (placenta metals)
+exposures <- c(paste0('placenta_',c('al','co','cr','ni','pb','se','as')))
+
+# define compositional outcomes (placenta cell types from DNAm deconvolution)
+outcomes <- c('Syncytiotrophoblast','Trophoblasts', 'Stromal',
+              'Hofbauer', 'Endothelial', 'nRBC')
+
+# cast categorical covariates as factors
+factor_covs <- c('mom_race', 'child_sex', 'gest_diabetes', 'prepreg_smoking',
+                 'mom_educ')
+for(v in factor_covs){
+  GSE75248_wCellComp[,v] <- as.factor(GSE75248_wCellComp[,v])
+}
+
+# impute missing covariate values
+covdat <- mice::mice(GSE75248_wCellComp[,covars],m=5,maxit=10,meth='pmm',
+                     seed=500)
+covdat_imp <- mice::complete(covdat,1)
+
+# construct data frame for DBWQS analysis
+obsdf <- cbind(GSE75248_wCellComp[,c(outcomes,exposures)], covdat_imp)
+
+# subset to observations with complete exposures cases
+obsdf <- obsdf[complete.cases(obsdf[,exposures]),]
+```
+
+## Run DBWQS model 
+
+Next, we load the `xbwqs` package and run DBWQS model on the observed data frame. We run the STAN sampler with (`chains=1`, `iter=2000` and `warmup=1000`) to get results in a short time. However, for a full analysis, we recommended the following settings (`chains=2`, `iter=10000`, `warmup=5000`).
+
+```{r}
+
+# run DBWQS
+fit_dbwqs <- dbwqs(data=obsdf, out=outcomes, exp=exposures, cov=covars)
+
+# check error_flag, (0: success, -1: error)
+fit_dbwqs$error_flag
+```
+
+## Plotting
+
+### Visualizing Compositional Outcomes 
+
+```{r}
+ccmp_plt <- ccomp_plot(ccomp = obsdf[,outcomes], sort_by=outcomes[1], decreasing=TRUE)
+ccmp_plt
+```
+
+### Bayesian Diagnostic Plots for DBWQS 
+
+```{r}
+# Stan autocorrelation plots
+acplts <- dbwqs_acplot(fit_dbwqs)
+acplts
+
+# STAN trace plots
+trcplts <- dbwqs_traceplot(fit_dbwqs)
+trcplts
+```

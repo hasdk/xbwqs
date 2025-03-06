@@ -1,0 +1,27 @@
+Package: xbwqs
+Title: Bayesian Weighted Quantile Sum Regression (BWQS)
+Version: 1.0
+Authors@R: 
+    person("Hachem", "Saddiki",, "hachem.saddiki@gmail.com", role = c("aut", "cre"))
+Description: This package implements Bayesian Weighted Quantile Sum regression for continuous, binary, and count outcomes; and BWQS extensions which currently include: Dirichlet BWQS (DBWQS) for proportions and compositional outcomes, and hierarchical DBWQS (HBWQS) for cross-cohort mixtures.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+LazyData: true
+Imports:
+  Rcpp,
+  rstan,
+  stats,
+  robCompositions,
+  ggplot2,
+  fastDummies,
+  reshape2,
+  LaplacesDemon
+Suggests:
+    knitr,
+    rmarkdown,
+    mice,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
