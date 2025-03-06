@@ -6,7 +6,6 @@ R package implementing Bayesian Weighted Quantile Sum Regression (BWQS) models a
   
 # Installation 
 We recommend installing the most recent version of `xbwqs` from GitHub via the `remotes` package:
-
 <code>
 library(remotes)
 remotes::install_github('hasdk/xbwqs')
