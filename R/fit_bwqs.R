@@ -13,7 +13,7 @@
 #' @param chains Integer specifying the number of chains in Hamiltonian Monte Carlo algorithm.
 #' Default value \code{chains = 1}.
 #' @param iter Integer specifying the number of iterations in HMC algorithm. Default value is \code{iter = 2000}. This value is chosen to make testing faster; it is recommended to use 10000 iterations in a full analysis.
-#' @param warmup Integer spcifying the number of warmup iterations in HMC algorithm. Default value is \code{warmup = 2000}.
+#' @param warmup Integer spcifying the number of warmup iterations in HMC algorithm. Default value is \code{warmup = 1000}.
 #' @param thin Integer specifying the thinning parameter in Hamiltonian Monte Carlo algorithm. Default value is \code{thin=1}.
 #' @param seed Integer value to fix the seed for reproducibility of results.
 #' @param verbose Boolean value indicating if user wants to display additional information during fitting. Default value is \code{verbose=FALSE}.
