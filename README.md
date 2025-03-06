@@ -5,7 +5,7 @@ R package implementing Bayesian Weighted Quantile Sum Regression (BWQS) models a
   3. `hbwqs()`: Hiearchical BWQS for evaluating the association between exposure mixtures and a single outcome of interest across multiple cohorts specified by the user. The same outcome types as `bwqs()` are supported.
   
 # Installation 
-We recommend installing the most recent version of `xbwqs` from GitHub via the `remotes` package:
+Install the most recent version of `xbwqs` from GitHub via the `remotes` package:
 <code>
 library(remotes)
 remotes::install_github('hasdk/xbwqs')
