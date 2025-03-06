@@ -1,8 +1,11 @@
 Package: xbwqs
 Title: Bayesian Weighted Quantile Sum Regression (BWQS)
 Version: 1.0
-Authors@R: 
-    person("Hachem", "Saddiki",, "hachem.saddiki@gmail.com", role = c("aut", "cre"))
+Authors@R:  c(
+      person("Hachem", "Saddiki",, "hachem.saddiki@gmail.com", role = c("aut", "cre")),
+      person("Elena", "Colicino",, "elena.colicino@mssm.edu", role = c("aut")),
+      person("Nicolo", "Foppa Pedretti",, "nicolo.foppapedretti@mssm.edu", role=c('ctb'))
+    )
 Description: This package implements Bayesian Weighted Quantile Sum regression for continuous, binary, and count outcomes; and BWQS extensions which currently include: Dirichlet BWQS (DBWQS) for proportions and compositional outcomes, and hierarchical DBWQS (HBWQS) for cross-cohort mixtures.
 License: MIT + file LICENSE
 Encoding: UTF-8
