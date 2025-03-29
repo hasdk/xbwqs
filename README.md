@@ -11,7 +11,7 @@ library(remotes)
 remotes::install_github('hasdk/xbwqs')
 </code>
 
-# Reference
+# References
 
 Please cite the references below when using the `xbwqs` package:
 
