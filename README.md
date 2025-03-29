@@ -15,4 +15,4 @@ remotes::install_github('hasdk/xbwqs')
 
 Please cite the references below when using the `xbwqs` package:
 
-- Saddiki H, Warren JL, Lesseur C, Colicino E. “Compositional outcomes and environmental mixtures: the Dirichlet Bayesian Weighted Quantile Sum Regression” (2024). arXiv preprint; doi.org/10.48550/arXiv.2503.21428.
+- Saddiki H, Warren JL, Lesseur C, Colicino E. “Compositional outcomes and environmental mixtures: the Dirichlet Bayesian Weighted Quantile Sum Regression” (2025). arXiv preprint; doi.org/10.48550/arXiv.2503.21428.
