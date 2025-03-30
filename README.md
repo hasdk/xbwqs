@@ -16,3 +16,5 @@ remotes::install_github('hasdk/xbwqs')
 Please cite the references below when using the `xbwqs` package:
 
 - Saddiki H, Warren JL, Lesseur C, Colicino E. “Compositional outcomes and environmental mixtures: the Dirichlet Bayesian Weighted Quantile Sum Regression” (2025). arXiv preprint; doi.org/10.48550/arXiv.2503.21428.
+- Colicino E, Ascari R, Saddiki H, Mercedes-Nieves F, Pedretti NF, Huddleston K, Wright RO, Wright RJ. "Cross-cohort mixture analysis: a data integration approach with applciations on gestational age and DNA-methylation derived gestational age" (2024). Biometrical Journal; doi: 10.1002/bimj.202300270. PMID: 39473136.
+- Colicino E, Pedretti NF, Busgang SA, Gennings C. "Per- and poly-fluoroalkyl substances and bone mineral density: Results from the Bayesian weighted quantile sum regression" (2020). Environmental Epidemiology; doi: 10.1097/EE9.0000000000000092. PMID: 32613152; PMCID: PMC7289141.
