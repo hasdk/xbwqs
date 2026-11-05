@@ -7,7 +7,7 @@
 #' @param out Character vector of outcome name corresponding to the one in `data`.
 #' @param exp Character vector of exposure names included in the mixture, corresponding to those in `data`.
 #' @param cov Character vector covariate names, corresponding to those in `data`. Note that the categorical covariates need to be included as factors in `data`; otherwise, they will be treated as numeric in the model.
-#' @param cohort Character representing the name of the cohort indices column in `data`.
+#' @param cohort Character representing the name of the column in `data` that identifies the cohort of each row. Cohort identifiers can be numeric codes (e.g. `2, 5, 9`), character labels, or a factor; they are mapped internally to consecutive integers `1..J`. Alternatively, a vector of cohort identifiers with one entry per row of `data` is accepted. If `NULL` (default), all rows are treated as a single cohort.
 #' @param family Character representing the outcome distribution used in the model. Currently, the supported outcome distributions include: `gaussian` for continuous, `binomial` for binary, and `poisson` for count outcomes. For compositional or proportion outcomes, please consult the `dbwqs()` function.
 #' @param q Integer specifying how exposure variables will be ranked, e.g. in quartiles
 #' (\code{q = 4}), deciles (\code{q = 10}), or percentiles (\code{q = 100}). Default is \code{q=4}.
@@ -25,9 +25,9 @@
 #' \code{hbwqs} returns a list containing the following elements:
 #' - `hbwqs_fit`: An \code{S4} object with all details of the Hamiltonian Monte Carlo, all the extractions
 #' from the posterior distribution and all values of the parameters.
-#' - `cohort_slopes`: Table with the statistics of the cohort-specific regression coefficients: mean, standard deviation, lower and upper values for the 80% and 95% credible interval, effective sample size, and Rhat.
+#' - `cohort_slopes`: Table with the statistics of the cohort-specific regression coefficients: mean, standard deviation, lower and upper values for the 80% and 95% credible interval, effective sample size, and Rhat. Rows are named after the cohort identifiers.
 #' - `cohort_intercepts`: Table with the statistics of the cohort-specific intercepts: mean, standard error of the mean,
-#' standard deviation, lower and upper values for the 80% and 95% credible interval, effective sample size, and Rhat.
+#' standard deviation, lower and upper values for the 80% and 95% credible interval, effective sample size, and Rhat. Rows are named after the cohort identifiers.
 #' - `mixweights`: Table with the statistics of the mixture weights: mean, standard error of the mean,
 #' standard deviation, lower and upper values for the 80% and 95% credible interval, effective sample size, and Rhat.
 #' - `error_flag`: Flag indicating whether the fitting process was successful (0:success / -1: failed).
@@ -40,17 +40,21 @@
 #' @import fastDummies
 #'
 #' @export
-hbwqs <- function(data, out, exp, cov=NULL, cohort, family, q=4, chains=1,
+hbwqs <- function(data, out, exp, cov=NULL, cohort=NULL, family, q=4, chains=1,
                  seed=99221, warmup=1000, iter=2000, thin=1, verbose=F,
                  max_treedepth=20,  adapt_delta = 0.999999){
+  # stop early if the installed rstan cannot compile Stan models
+  check_rstan_compat()
+
   # assert dataframe
   data <- as.data.frame(data)
 
   # quantize exposures
   exp_q = data.frame(quantile_split(data, mix_name = exp, q=q))
 
-  # initialize cohort
-  if(is.null(cohort)){cohort = rep(1, nrow(data))}
+  # map cohort identifiers to consecutive integer indices 1..J for STAN
+  cohort_info <- cohort_index(data, cohort)
+  cohort <- cohort_info$index
 
   # set DBWQS appropriate model
   if(length(cov) == 0){
@@ -76,14 +80,14 @@ hbwqs <- function(data, out, exp, cov=NULL, cohort, family, q=4, chains=1,
   } else{
 
     # check for factor variables
-    fact_idx <- which(sapply(data[, cov], is.factor) == TRUE)
+    fact_idx <- which(sapply(data[, cov, drop = FALSE], is.factor) == TRUE)
 
     # construct new covariate data frame with binary dummy variables representing the factor variables
     if(length(fact_idx) >0){
-      cov_df <- fastDummies::dummy_cols(data[, cov], cov[fact_idx],
+      cov_df <- fastDummies::dummy_cols(data[, cov, drop = FALSE], cov[fact_idx],
                                         remove_most_frequent_dummy = TRUE,
                                         remove_selected_columns = TRUE)
-    } else{cov_df <- data[,cov]}
+    } else{cov_df <- data[, cov, drop = FALSE]}
 
     # prepare input data list
     data_stan = list(N = nrow(data), # sample size
@@ -134,6 +138,7 @@ hbwqs <- function(data, out, exp, cov=NULL, cohort, family, q=4, chains=1,
     cohort_slopes <- data.frame(summary(hbwqs_fit, pars=c('b'), probs=c(0.025,0.975,0.1,0.9))$summary)
     cohort_intercepts <- data.frame(summary(hbwqs_fit, pars=c('a'), probs=c(0.025,0.975,0.1,0.9))$summary)
     colnames(cohort_slopes)[4:7] <- colnames(cohort_intercepts)[4:7] <- c('CrI95_low', 'CrI95_high','CrI80_low', 'CrI80_high')
+    rownames(cohort_slopes) <- rownames(cohort_intercepts) <- cohort_info$labels
 
     # extract estimated exposure mixture weights
     mixweights <- data.frame(summary(hbwqs_fit, pars=c('w'), probs=c(0.025,0.975,0.1,0.9))$summary)
@@ -143,6 +148,36 @@ hbwqs <- function(data, out, exp, cov=NULL, cohort, family, q=4, chains=1,
     return(list(hbwqs_fit = hbwqs_fit, cohort_slopes=cohort_slopes, cohort_intercepts=cohort_intercepts,
                 mixweights=mixweights, error_flag=0))
   }
+}
+
+#' Map cohort identifiers to consecutive integer indices.
+#'
+#' @param data Data frame passed to `hbwqs()`.
+#' @param cohort `NULL`, the name of a column in `data`, or a vector with one
+#'   cohort identifier per row of `data`.
+#'
+#' @return List with `index` (integer vector with values in `1..J`) and
+#'   `labels` (character vector of the `J` cohort identifiers, in index order).
+#' @noRd
+cohort_index <- function(data, cohort){
+  if(is.null(cohort)){
+    values <- rep(1L, nrow(data))
+  } else if(is.character(cohort) && length(cohort) == 1){
+    if(!cohort %in% colnames(data)){
+      stop("Cohort column '", cohort, "' not found in `data`.", call. = FALSE)
+    }
+    values <- data[[cohort]]
+  } else if(length(cohort) == nrow(data)){
+    values <- cohort
+  } else{
+    stop("`cohort` must be the name of a column in `data` or a vector with one entry per row of `data`.",
+         call. = FALSE)
+  }
+  if(anyNA(values)){
+    stop("Cohort identifiers contain missing values.", call. = FALSE)
+  }
+  cohort_f <- factor(values)
+  list(index = as.integer(cohort_f), labels = levels(cohort_f))
 }
 
 

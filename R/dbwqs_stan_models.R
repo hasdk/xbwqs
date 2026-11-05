@@ -25,7 +25,7 @@ data {
   int<lower=2> C;       // number of elements in the compositional outcome
   int<lower=2> K;       // number of elements in the exposure mixture
   int<lower=1> M;       // number of other covariates
-  vector[C] Y[N];       // compositional outcome matrix
+  array[N] vector[C] Y;       // compositional outcome matrix
   matrix[N, K] X_matr;  // exposure matrix
   matrix[N, M] Z_matr;  // Other covariates matrix
 }
@@ -55,7 +55,7 @@ model {
 
   // likelihood
  {
-    vector[C] mu[N];
+    array[N] vector[C] mu;
     for (n in 1:N) {
       mu[n][1] = 0;  // Reference category
       mu[n][2:C] = intercepts + rel_coefs .* S_bwqs[n] + Zprod[n]';
@@ -106,7 +106,7 @@ data {
   int<lower=1> N;       // total number of observations
   int<lower=2> C;       // number of elements in the compositional outcome
   int<lower=2> K;       // number of elements in the exposure mixture
-  vector[C] Y[N];       // compositional outcome matrix
+  array[N] vector[C] Y;       // compositional outcome matrix
   matrix[N, K] X_matr;  // exposure matrix
 }
 
@@ -132,7 +132,7 @@ model {
 
   // likelihood
  {
-    vector[C] mu[N];
+    array[N] vector[C] mu;
     for (n in 1:N) {
       mu[n][1] = 0;  // Reference category
       mu[n][2:C] = intercepts + rel_coefs .* S_bwqs[n] ;

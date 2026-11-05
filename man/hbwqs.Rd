@@ -9,7 +9,7 @@ hbwqs(
   out,
   exp,
   cov = NULL,
-  cohort,
+  cohort = NULL,
   family,
   q = 4,
   chains = 1,
@@ -31,7 +31,7 @@ hbwqs(
 
 \item{cov}{Character vector covariate names, corresponding to those in \code{data}. Note that the categorical covariates need to be included as factors in \code{data}; otherwise, they will be treated as numeric in the model.}
 
-\item{cohort}{Character representing the name of the cohort indices column in \code{data}.}
+\item{cohort}{Character representing the name of the column in \code{data} that identifies the cohort of each row. Cohort identifiers can be numeric codes (e.g. \verb{2, 5, 9}), character labels, or a factor; they are mapped internally to consecutive integers \verb{1..J}. Alternatively, a vector of cohort identifiers with one entry per row of \code{data} is accepted. If \code{NULL} (default), all rows are treated as a single cohort.}
 
 \item{family}{Character representing the outcome distribution used in the model. Currently, the supported outcome distributions include: \code{gaussian} for continuous, \code{binomial} for binary, and \code{poisson} for count outcomes. For compositional or proportion outcomes, please consult the \code{dbwqs()} function.}
 
@@ -43,7 +43,7 @@ Default value \code{chains = 1}.}
 
 \item{seed}{Integer value to fix the seed for reproducibility of results.}
 
-\item{warmup}{Integer spcifying the number of warmup iterations in HMC algorithm. Default value is \code{warmup = 2000}.}
+\item{warmup}{Integer spcifying the number of warmup iterations in HMC algorithm. Default value is \code{warmup = 1000}.}
 
 \item{iter}{Integer specifying the number of iterations in HMC algorithm. Default value is \code{iter = 2000}. This value is chosen to make testing faster; it is recommended to use 10000 iterations in a full analysis.}
 
@@ -60,9 +60,9 @@ Default value \code{chains = 1}.}
 \itemize{
 \item \code{hbwqs_fit}: An \code{S4} object with all details of the Hamiltonian Monte Carlo, all the extractions
 from the posterior distribution and all values of the parameters.
-\item \code{cohort_slopes}: Table with the statistics of the cohort-specific regression coefficients: mean, standard deviation, lower and upper values for the 80\% and 95\% credible interval, effective sample size, and Rhat.
+\item \code{cohort_slopes}: Table with the statistics of the cohort-specific regression coefficients: mean, standard deviation, lower and upper values for the 80\% and 95\% credible interval, effective sample size, and Rhat. Rows are named after the cohort identifiers.
 \item \code{cohort_intercepts}: Table with the statistics of the cohort-specific intercepts: mean, standard error of the mean,
-standard deviation, lower and upper values for the 80\% and 95\% credible interval, effective sample size, and Rhat.
+standard deviation, lower and upper values for the 80\% and 95\% credible interval, effective sample size, and Rhat. Rows are named after the cohort identifiers.
 \item \code{mixweights}: Table with the statistics of the mixture weights: mean, standard error of the mean,
 standard deviation, lower and upper values for the 80\% and 95\% credible interval, effective sample size, and Rhat.
 \item \code{error_flag}: Flag indicating whether the fitting process was successful (0:success / -1: failed).
