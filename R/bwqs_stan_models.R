@@ -8,7 +8,7 @@ data {
   int<lower=1> M;       // number of other covariates
   matrix[N, K] X_matr;  // exposure matrix
   matrix[N, M] Z_matr;  // Other covariates matrix
-  real y[N];            // continuous outcome
+  array[N] real y;            // continuous outcome
 
 }
 
@@ -23,7 +23,7 @@ parameters {
 
 transformed parameters {
   vector[N] Xb;
-  Xb = intercept + coef * (X*w) + Z_matr * delta;
+  Xb = intercept + coef * (X_matr*w) + Z_matr * delta;
 }
 
 model {
@@ -37,7 +37,7 @@ model {
   y ~ normal(Xb, sig);
 }
 generated quantities{
-  # calculate likelihood
+  // calculate likelihood
   vector[N] log_lik;
   for(n in 1:N){
     log_lik[n] = normal_lpdf(y[n] | Xb[n], sig);
@@ -50,7 +50,7 @@ data {
   int<lower=1> N;       // total number of observations
   int<lower=2> K;       // number of elements in the exposure mixture
   matrix[N, K] X_matr;  // exposure matrix
-  real y[N];            // continuous outcome
+  array[N] real y;            // continuous outcome
 }
 
 parameters {
@@ -63,7 +63,7 @@ parameters {
 
 transformed parameters {
   vector[N] Xb;
-  Xb = intercept + coef * (X*w);
+  Xb = intercept + coef * (X_matr*w);
 }
 
 model {
@@ -76,7 +76,7 @@ model {
   y ~ normal(Xb, sig);
 }
 generated quantities{
-  # calculate likelihood
+  // calculate likelihood
   vector[N] log_lik;
   for(n in 1:N){
     log_lik[n] = normal_lpdf(y[n] | Xb[n], sig);
@@ -94,7 +94,7 @@ data {
   int<lower=1> M;       // number of other covariates
   matrix[N, K] X_matr;  // exposure matrix
   matrix[N, M] Z_matr;  // Other covariates matrix
-  int<lower=0, upper=1> y[N];            // binary outcome
+  array[N] int<lower=0, upper=1> y;            // binary outcome
 }
 
 parameters {
@@ -107,7 +107,7 @@ parameters {
 
 transformed parameters {
   vector[N] Xb;
-  Xb = intercept + coef * (X*w) + Z_matr * delta;
+  Xb = intercept + coef * (X_matr*w) + Z_matr * delta;
 }
 
 model {
@@ -120,7 +120,7 @@ model {
   y ~ bernoulli_logit(Xb);
 }
 generated quantities{
-  # calculate likelihood
+  // calculate likelihood
   vector[N] log_lik;
   for(n in 1:N){
     log_lik[n] = bernoulli_logit_lpmf(y[n]| Xb[n]);
@@ -132,7 +132,7 @@ data {
   int<lower=1> N;       // total number of observations
   int<lower=2> K;       // number of elements in the exposure mixture
   matrix[N, K] X_matr;  // exposure matrix
-  int<lower=0, upper=1> y[N];            // binary outcome
+  array[N] int<lower=0, upper=1> y;            // binary outcome
 }
 
 parameters {
@@ -144,7 +144,7 @@ parameters {
 
 transformed parameters {
   vector[N] Xb;
-  Xb = intercept + coef * (X*w);
+  Xb = intercept + coef * (X_matr*w);
 }
 
 model {
@@ -156,7 +156,7 @@ model {
   y ~ bernoulli_logit(Xb);
 }
 generated quantities{
-  # calculate likelihood
+  // calculate likelihood
   vector[N] log_lik;
   for(n in 1:N){
     log_lik[n] = bernoulli_logit_lpmf(y[n]| Xb[n]);
@@ -174,7 +174,7 @@ data {
   int<lower=1> M;       // number of other covariates
   matrix[N, K] X_matr;  // exposure matrix
   matrix[N, M] Z_matr;  // Other covariates matrix
-  int<lower=0> y[N];            // count outcome
+  array[N] int<lower=0> y;            // count outcome
 }
 
 parameters {
@@ -187,7 +187,7 @@ parameters {
 
 transformed parameters {
   vector[N] mu;
-  mu = exp(intercept + coef * (X*w) + Z_matr * delta);
+  mu = exp(intercept + coef * (X_matr*w) + Z_matr * delta);
 }
 
 model {
@@ -201,7 +201,7 @@ model {
 
 }
 generated quantities{
-  # calculate likelihood
+  // calculate likelihood
   vector[N] log_lik;
   for(n in 1:N){
     log_lik[n] = poisson_lpmf(y[n]| mu[n]);
@@ -213,7 +213,7 @@ data {
   int<lower=1> N;       // total number of observations
   int<lower=2> K;       // number of elements in the exposure mixture
   matrix[N, K] X_matr;  // exposure matrix
-  int<lower=0> y[N];            // count outcome
+  array[N] int<lower=0> y;            // count outcome
 }
 
 parameters {
@@ -225,7 +225,7 @@ parameters {
 
 transformed parameters {
   vector[N] mu;
-  mu = exp(intercept + coef * (X*w));
+  mu = exp(intercept + coef * (X_matr*w));
 }
 
 model {
@@ -238,7 +238,7 @@ model {
 
 }
 generated quantities{
-  # calculate likelihood
+  // calculate likelihood
   vector[N] log_lik;
   for(n in 1:N){
     log_lik[n] = poisson_lpmf(y[n]| mu[n]);

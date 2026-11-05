@@ -46,6 +46,9 @@
 dbwqs <- function(data, out, exp, cov=NULL, ref=NULL, q=4, chains=1, impute_zeros=F, eps=1e-4,
                   seed=99221, warmup=1000, iter=2000, thin=1, verbose=F,
                   max_treedepth=20,  adapt_delta = 0.999999){
+  # stop early if the installed rstan cannot compile Stan models
+  check_rstan_compat()
+
   # assert dataframe
   data <- as.data.frame(data)
 
@@ -85,15 +88,15 @@ dbwqs <- function(data, out, exp, cov=NULL, ref=NULL, q=4, chains=1, impute_zero
     dbwqs_stanmod <- dbwqs_covmod
 
     # check for factor variables
-    fact_idx <- which(sapply(data[, cov], is.factor) == TRUE)
+    fact_idx <- which(sapply(data[, cov, drop = FALSE], is.factor) == TRUE)
 
     # construct new covariate data frame with binary dummy variables representing the factor variables
     if(length(fact_idx) >0){
-      cov_df <- fastDummies::dummy_cols(data[, cov], cov[fact_idx],
+      cov_df <- fastDummies::dummy_cols(data[, cov, drop = FALSE], cov[fact_idx],
                            remove_most_frequent_dummy = TRUE,
                            remove_selected_columns = TRUE)
     } else{
-      cov_df <- data[,cov]
+      cov_df <- data[, cov, drop = FALSE]
     }
 
     # prepare input data list
